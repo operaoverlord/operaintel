@@ -110,21 +110,7 @@ export default function CesiumClient() {
 
   return (
     <>
-      <div
-        style={{
-          position: "fixed",
-          top: 70,
-          left: 20,
-          zIndex: 10000,
-          color: "lime",
-          background: "rgba(0,0,0,0.8)",
-          padding: "8px 10px",
-          fontSize: "12px",
-          fontFamily: "monospace",
-        }}
-      >
-        {status}
-      </div>
+     
 
       <div ref={containerRef} className="absolute inset-0" />
     </>
