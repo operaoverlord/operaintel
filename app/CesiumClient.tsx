@@ -1,12 +1,14 @@
-if (typeof window !== 'undefined') {
-  // @ts-ignore
-  window.CESIUM_BASE_URL = '/cesium'
-}
-
 "use client";
 
 import { useEffect, useRef } from "react";
 import "cesium/Build/Cesium/Widgets/widgets.css";
+
+
+
+if (typeof window !== 'undefined') {
+  // @ts-ignore
+  window.CESIUM_BASE_URL = '/cesium'
+}
 
 export default function CesiumClient({
   onSelectEvent,
