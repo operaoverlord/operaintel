@@ -1,18 +1,49 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import * as Cesium from "cesium";
+import "cesium/Build/Cesium/Widgets/widgets.css";
 
 export default function CesiumClient() {
-  const ref = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    console.log("Cesium placeholder running");
+    if (!containerRef.current) return;
+
+    // @ts-ignore
+    window.CESIUM_BASE_URL = "/cesium";
+
+    Cesium.Ion.defaultAccessToken =
+      process.env.NEXT_PUBLIC_CESIUM_TOKEN || "";
+
+    let viewer: Cesium.Viewer | undefined;
+
+    async function init() {
+      const terrain = await Cesium.createWorldTerrainAsync();
+
+      viewer = new Cesium.Viewer(containerRef.current as HTMLDivElement, {
+        terrain,
+        animation: false,
+        timeline: false,
+        baseLayerPicker: false,
+        geocoder: false,
+        homeButton: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        selectionIndicator: false,
+        fullscreenButton: false,
+      });
+    }
+
+    init();
+
+    return () => {
+      if (viewer && !viewer.isDestroyed()) {
+        viewer.destroy();
+      }
+    };
   }, []);
 
-  return (
-    <div
-      ref={ref}
-      style={{ position: "absolute", inset: 0, background: "black" }}
-    />
-  );
+  return <div ref={containerRef} className="absolute inset-0" />;
 }
