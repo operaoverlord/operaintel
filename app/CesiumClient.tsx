@@ -16,7 +16,6 @@ export default function CesiumClient() {
     let cancelled = false;
     let handler: any = null;
     let moveInterval: number | null = null;
-    let selectedId: string | null = null;
 
     async function run() {
       if (!document.getElementById("cesium-widgets-css")) {
@@ -60,7 +59,7 @@ export default function CesiumClient() {
 
       const Cesium = window.Cesium;
 
-      Cesium.Ion.defaultAccessToken = "PeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMTRlZmI4NS1hNzRiLTRjNGUtODU1ZC1iMTU4MzZmNjI0ODMiLCJpZCI6NDE5ODE2LCJpYXQiOjE3NzY0ODUwMjV9.z5cryd76z8Ecf5kfKY77MBMe_34wym0RMMbSX3t6A4I";
+      Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMTRlZmI4NS1hNzRiLTRjNGUtODU1ZC1iMTU4MzZmNjI0ODMiLCJpZCI6NDE5ODE2LCJpYXQiOjE3NzY0ODUwMjV9.z5cryd76z8Ecf5kfKY77MBMe_34wym0RMMbSX3t6A4I";
 
       viewer = new Cesium.Viewer(containerRef.current, {
         animation: false,
@@ -74,9 +73,16 @@ export default function CesiumClient() {
         selectionIndicator: false,
         fullscreenButton: false,
         shouldAnimate: true,
+        terrainProvider: new Cesium.EllipsoidTerrainProvider(),
       });
 
-      // Launch view: Hormuz, but more zoomed out
+      // Force globe to actually render
+      viewer.scene.globe.show = true;
+      viewer.scene.globe.baseColor = Cesium.Color.DARKSLATEGRAY;
+      viewer.scene.skyAtmosphere.show = true;
+      viewer.scene.backgroundColor = Cesium.Color.BLACK;
+
+      // Start over Hormuz, but not absurdly zoomed in
       viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(56.5, 26.2, 2200000),
       });
@@ -152,10 +158,6 @@ export default function CesiumClient() {
             backgroundColor: Cesium.Color.BLACK.withAlpha(0.72),
             pixelOffset: new Cesium.Cartesian2(0, -22),
           },
-          properties: {
-            type: flight.type,
-            colorName: flight.colorName,
-          },
         })
       );
 
@@ -177,7 +179,6 @@ export default function CesiumClient() {
 
         if (Cesium.defined(picked) && picked.id) {
           const pickedEntity = picked.id;
-          selectedId = pickedEntity.id;
 
           resetEntityStyles();
 
