@@ -20,7 +20,7 @@ export default function CesiumClient() {
       animation: false,
       baseLayerPicker: false,
       timeline: false,
-      terrainProvider: Cesium.createWorldTerrain(),
+      terrain: Cesium.Terrain.fromWorldTerrain(),
     });
 
     return () => {
