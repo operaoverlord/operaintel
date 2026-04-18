@@ -59,8 +59,7 @@ export default function CesiumClient() {
 
       const Cesium = window.Cesium;
 
-      Cesium.Ion.defaultAccessToken =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMTRlZmI4NS1hNzRiLTRjNGUtODU1ZC1iMTU4MzZmNjI0ODMiLCJpZCI6NDE5ODE2LCJpYXQiOjE3NzY0ODUwMjV9.z5cryd76z8Ecf5kfKY77MBMe_34wym0RMMbSX3t6A4I";
+      Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMTRlZmI4NS1hNzRiLTRjNGUtODU1ZC1iMTU4MzZmNjI0ODMiLCJpZCI6NDE5ODE2LCJpYXQiOjE3NzY0ODUwMjV9.z5cryd76z8Ecf5kfKY77MBMe_34wym0RMMbSX3t6A4I";
 
       viewer = new Cesium.Viewer(containerRef.current, {
         animation: false,
@@ -70,20 +69,23 @@ export default function CesiumClient() {
         homeButton: false,
         sceneModePicker: false,
         navigationHelpButton: false,
-        infoBox: true,
-        selectionIndicator: true,
+        infoBox: false,
+        selectionIndicator: false,
         fullscreenButton: false,
         shouldAnimate: true,
       });
 
+      // START VIEW → HORMUZ
       viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(-98.5795, 39.8283, 12000000),
+        destination: Cesium.Cartesian3.fromDegrees(56.5, 26.2, 900000),
       });
 
       const flights = [
         {
           id: "hormuz-track-1",
           name: "FLIGHT A01",
+          type: "CARGO",
+          color: Cesium.Color.ORANGE,
           lon: 56.25,
           lat: 26.45,
           alt: 12000,
@@ -93,6 +95,8 @@ export default function CesiumClient() {
         {
           id: "hormuz-track-2",
           name: "FLIGHT B12",
+          type: "PASSENGER",
+          color: Cesium.Color.CYAN,
           lon: 56.55,
           lat: 26.9,
           alt: 11000,
@@ -102,6 +106,8 @@ export default function CesiumClient() {
         {
           id: "hormuz-track-3",
           name: "FLIGHT C07",
+          type: "MILITARY",
+          color: Cesium.Color.RED,
           lon: 56.85,
           lat: 25.95,
           alt: 13000,
@@ -121,39 +127,33 @@ export default function CesiumClient() {
           ),
           point: {
             pixelSize: 12,
-            color: Cesium.Color.CYAN,
+            color: flight.color,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 1,
           },
           label: {
             text: flight.name,
             font: "12px monospace",
-            fillColor: Cesium.Color.CYAN,
+            fillColor: flight.color,
             showBackground: true,
-            backgroundColor: Cesium.Color.BLACK.withAlpha(0.65),
+            backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
             pixelOffset: new Cesium.Cartesian2(0, -20),
           },
-          description: `
-            <div style="font-family: monospace; color: white;">
-              <div><strong>${flight.name}</strong></div>
-              <div>Zone: Strait of Hormuz</div>
-              <div>Status: ACTIVE TRACK</div>
-              <div>ID: ${flight.id}</div>
-            </div>
-          `,
         })
       );
 
+      // CLICK HANDLER (no popup)
       handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
       handler.setInputAction((click: any) => {
         const picked = viewer.scene.pick(click.position);
 
         if (Cesium.defined(picked) && picked.id) {
-          viewer.selectedEntity = picked.id;
+          console.log("SELECTED:", picked.id.id);
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
+      // MOVEMENT
       moveInterval = window.setInterval(() => {
         flights.forEach((flight, index) => {
           flight.lon += flight.dLon;
@@ -176,24 +176,14 @@ export default function CesiumClient() {
       }, 1000);
     }
 
-    run().catch((err) => {
-      console.error("Cesium failed:", err);
-    });
+    run();
 
     return () => {
       cancelled = true;
 
-      if (moveInterval !== null) {
-        window.clearInterval(moveInterval);
-      }
-
-      if (handler) {
-        handler.destroy();
-      }
-
-      if (viewer && !viewer.isDestroyed()) {
-        viewer.destroy();
-      }
+      if (moveInterval !== null) window.clearInterval(moveInterval);
+      if (handler) handler.destroy();
+      if (viewer && !viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
 
