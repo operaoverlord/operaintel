@@ -19,10 +19,8 @@ export default function CesiumClient() {
     let viewer: Cesium.Viewer | undefined;
 
     async function init() {
-      const terrain = await Cesium.createWorldTerrainAsync();
 
       viewer = new Cesium.Viewer(containerRef.current as HTMLDivElement, {
-        terrain,
         animation: false,
         timeline: false,
         baseLayerPicker: false,
