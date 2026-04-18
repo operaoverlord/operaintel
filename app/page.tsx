@@ -21,7 +21,7 @@ export default function Page() {
       {/* LEFT PANEL */}
       <div className="absolute top-4 left-4 z-10 w-[260px] md:w-[300px] bg-black/70 backdrop-blur-md border border-white/10 rounded-xl p-4">
   <div className="text-xs tracking-widest text-purple-400 animate-pulse font-mono drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]">
-    OPERA INTEL
+    OPERA INTELLIGENCE
   </div>
   <div className="text-lg mt-2 text-white">
     SYSTEM ACTIVE

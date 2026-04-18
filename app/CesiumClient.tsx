@@ -16,6 +16,7 @@ export default function CesiumClient() {
     let cancelled = false;
     let handler: any = null;
     let moveInterval: number | null = null;
+    let selectedId: string | null = null;
 
     async function run() {
       if (!document.getElementById("cesium-widgets-css")) {
@@ -59,7 +60,7 @@ export default function CesiumClient() {
 
       const Cesium = window.Cesium;
 
-      Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMTRlZmI4NS1hNzRiLTRjNGUtODU1ZC1iMTU4MzZmNjI0ODMiLCJpZCI6NDE5ODE2LCJpYXQiOjE3NzY0ODUwMjV9.z5cryd76z8Ecf5kfKY77MBMe_34wym0RMMbSX3t6A4I";
+      Cesium.Ion.defaultAccessToken = "PeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMTRlZmI4NS1hNzRiLTRjNGUtODU1ZC1iMTU4MzZmNjI0ODMiLCJpZCI6NDE5ODE2LCJpYXQiOjE3NzY0ODUwMjV9.z5cryd76z8Ecf5kfKY77MBMe_34wym0RMMbSX3t6A4I";
 
       viewer = new Cesium.Viewer(containerRef.current, {
         animation: false,
@@ -75,9 +76,9 @@ export default function CesiumClient() {
         shouldAnimate: true,
       });
 
-      // START VIEW → HORMUZ
+      // Launch view: Hormuz, but more zoomed out
       viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(56.5, 26.2, 900000),
+        destination: Cesium.Cartesian3.fromDegrees(56.5, 26.2, 2200000),
       });
 
       const flights = [
@@ -85,7 +86,7 @@ export default function CesiumClient() {
           id: "hormuz-track-1",
           name: "FLIGHT A01",
           type: "CARGO",
-          color: Cesium.Color.ORANGE,
+          colorName: "ORANGE",
           lon: 56.25,
           lat: 26.45,
           alt: 12000,
@@ -96,7 +97,7 @@ export default function CesiumClient() {
           id: "hormuz-track-2",
           name: "FLIGHT B12",
           type: "PASSENGER",
-          color: Cesium.Color.CYAN,
+          colorName: "CYAN",
           lon: 56.55,
           lat: 26.9,
           alt: 11000,
@@ -107,7 +108,7 @@ export default function CesiumClient() {
           id: "hormuz-track-3",
           name: "FLIGHT C07",
           type: "MILITARY",
-          color: Cesium.Color.RED,
+          colorName: "RED",
           lon: 56.85,
           lat: 25.95,
           alt: 13000,
@@ -115,6 +116,18 @@ export default function CesiumClient() {
           dLat: 0.005,
         },
       ];
+
+      function getCesiumColor(name: string) {
+        switch (name) {
+          case "ORANGE":
+            return Cesium.Color.ORANGE;
+          case "RED":
+            return Cesium.Color.RED;
+          case "CYAN":
+          default:
+            return Cesium.Color.CYAN;
+        }
+      }
 
       const entities = flights.map((flight) =>
         viewer.entities.add({
@@ -126,34 +139,71 @@ export default function CesiumClient() {
             flight.alt
           ),
           point: {
-            pixelSize: 12,
-            color: flight.color,
+            pixelSize: 16,
+            color: getCesiumColor(flight.colorName),
             outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 1,
+            outlineWidth: 2,
           },
           label: {
-            text: flight.name,
+            text: `${flight.name} • ${flight.type}`,
             font: "12px monospace",
-            fillColor: flight.color,
+            fillColor: getCesiumColor(flight.colorName),
             showBackground: true,
-            backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
-            pixelOffset: new Cesium.Cartesian2(0, -20),
+            backgroundColor: Cesium.Color.BLACK.withAlpha(0.72),
+            pixelOffset: new Cesium.Cartesian2(0, -22),
+          },
+          properties: {
+            type: flight.type,
+            colorName: flight.colorName,
           },
         })
       );
 
-      // CLICK HANDLER (no popup)
+      function resetEntityStyles() {
+        entities.forEach((entity: any, index: number) => {
+          const color = getCesiumColor(flights[index].colorName);
+          entity.point.pixelSize = 16;
+          entity.point.outlineWidth = 2;
+          entity.point.color = color;
+          entity.label.fillColor = color;
+          entity.label.scale = 1;
+        });
+      }
+
       handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
       handler.setInputAction((click: any) => {
         const picked = viewer.scene.pick(click.position);
 
         if (Cesium.defined(picked) && picked.id) {
-          console.log("SELECTED:", picked.id.id);
+          const pickedEntity = picked.id;
+          selectedId = pickedEntity.id;
+
+          resetEntityStyles();
+
+          pickedEntity.point.pixelSize = 22;
+          pickedEntity.point.outlineWidth = 3;
+          pickedEntity.point.color = Cesium.Color.YELLOW;
+          pickedEntity.label.fillColor = Cesium.Color.YELLOW;
+          pickedEntity.label.scale = 1.15;
+
+          const match = flights.find((f) => f.id === pickedEntity.id);
+
+          window.dispatchEvent(
+            new CustomEvent("flight-select", {
+              detail: {
+                id: pickedEntity.id,
+                name: pickedEntity.name,
+                type: match?.type ?? "UNKNOWN",
+                colorName: match?.colorName ?? "CYAN",
+                zone: "STRAIT OF HORMUZ",
+                status: "ACTIVE TRACK",
+              },
+            })
+          );
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-      // MOVEMENT
       moveInterval = window.setInterval(() => {
         flights.forEach((flight, index) => {
           flight.lon += flight.dLon;
@@ -176,7 +226,9 @@ export default function CesiumClient() {
       }, 1000);
     }
 
-    run();
+    run().catch((err) => {
+      console.error("Cesium failed:", err);
+    });
 
     return () => {
       cancelled = true;
