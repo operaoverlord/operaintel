@@ -93,6 +93,67 @@ export default function CesiumClient() {
         viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(-98.5795, 39.8283, 12000000),
         });
+        viewer.entities.add({
+  id: "hormuz-track-1",
+  position: Cesium.Cartesian3.fromDegrees(56.25, 26.45, 12000),
+  point: {
+    pixelSize: 10,
+    color: Cesium.Color.CYAN,
+    outlineColor: Cesium.Color.WHITE,
+    outlineWidth: 1,
+  },
+  label: {
+    text: "FLIGHT A01",
+    font: "12px monospace",
+    fillColor: Cesium.Color.CYAN,
+    showBackground: true,
+    backgroundColor: Cesium.Color.BLACK.withAlpha(0.65),
+    pixelOffset: new Cesium.Cartesian2(0, -18),
+  },
+});
+
+viewer.entities.add({
+  id: "hormuz-track-2",
+  position: Cesium.Cartesian3.fromDegrees(56.55, 26.9, 11000),
+  point: {
+    pixelSize: 10,
+    color: Cesium.Color.CYAN,
+    outlineColor: Cesium.Color.WHITE,
+    outlineWidth: 1,
+  },
+  label: {
+    text: "FLIGHT B12",
+    font: "12px monospace",
+    fillColor: Cesium.Color.CYAN,
+    showBackground: true,
+    backgroundColor: Cesium.Color.BLACK.withAlpha(0.65),
+    pixelOffset: new Cesium.Cartesian2(0, -18),
+  },
+});
+
+viewer.entities.add({
+  id: "hormuz-track-3",
+  position: Cesium.Cartesian3.fromDegrees(56.85, 25.95, 13000),
+  point: {
+    pixelSize: 10,
+    color: Cesium.Color.CYAN,
+    outlineColor: Cesium.Color.WHITE,
+    outlineWidth: 1,
+  },
+  label: {
+    text: "FLIGHT C07",
+    font: "12px monospace",
+    fillColor: Cesium.Color.CYAN,
+    showBackground: true,
+    backgroundColor: Cesium.Color.BLACK.withAlpha(0.65),
+    pixelOffset: new Cesium.Cartesian2(0, -18),
+  },
+});
+
+viewer.camera.flyTo({
+  destination: Cesium.Cartesian3.fromDegrees(56.5, 26.2, 900000),
+  duration: 1.5,
+});
 
         setStatus("done");
       } catch (err: any) {
